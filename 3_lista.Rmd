@@ -1,0 +1,204 @@
+---
+title: "3_lista"
+author: "Natalia Dżyga"
+date: '2023-01-05'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Zadanie 1.  
+Zbiór danych  cpus  z pliku  Lista3.RData  zawiera zmierzonych przez odbiorcę natężenie prądu w μA w jednym z obwodów dla próbki 1000 procesorów. Według producenta P, u którego kupuje   procesory   odbiorca,   urządzenie   produkujące   jest   skalibrowane   tak,   aby   produkować procesory o wartości prądu 200 μA, a technologia produkcji gwarantuje odchylenie standardowe 2μA, przy czym natężenie prąd jest zmienną losową daną rozkładem normalnym. Odbiorca twierdzi, że w otrzymywanych procesorach natężenie prądu jest zbyt duże. 
+Zweryfikuj na poziomie istotności 0.05, czy urządzenie rzeczywiście należy przekalibrować.
+
+a) rozkład normalny
+H0: m=200
+H1: m>200
+Średnia:
+```{r}
+sd = mean(dane)
+sd
+```
+
+```{r}
+n = 1000
+sigma = 2
+alfa = 0.05
+dane = cpus
+m0 = 200
+X = qnorm(p=alfa, m=m0, sd=sigma/sqrt(n), lower.tail = FALSE)
+X
+```
+Czy wynik zmieni się dla poziomu istotności 0.1?
+```{r}
+X = qnorm(p=0.1, m=m0, sd=sigma/sqrt(n), lower.tail = FALSE)
+X
+```
+Czy wynik zmieni się dla poziomu istotności 0.01?
+
+
+b) rozdkład normalny standardowy
+```{r}
+X = mean(dane)
+U = (X - m0)/sigma*sqrt(n)
+U
+```
+
+```{r}
+alfa = 0.05
+u.2alfa = qnorm(p=alfa, lower.tail = FALSE)
+U >= u.2alfa
+u.2alfa
+```
+```{r}
+alfa = 0.01
+u.2alfa = qnorm(p=alfa, lower.tail = FALSE)
+U >= u.2alfa
+u.2alfa
+```
+```{r}
+alfa = 0.1
+u.2alfa = qnorm(p=alfa, lower.tail = FALSE)
+U >= u.2alfa
+u.2alfa
+```
+
+c) z.test
+```{r}
+library(BSDA)
+z.test(x=cpus,mu=200,alternative = "greater", sigma.x=sigma)
+```
+
+
+Zadanie 2. 
+Dla danych z zadania 1 załóż, że technologia nie gwarantuje odchylenia standardowego i jest ono nieznane. Rozwiąż zadanie 1 przy tych założeniach.
+
+a) rozkład t
+```{r}
+alfa = 0.05
+m0 = 200
+s = sd(dane)
+n = length(dane)
+X = mean(dane)
+t = (X - m0)/s*sqrt(n)
+t
+
+```
+```{r}
+t.2alfa = qt(p=alfa, df=n-1, lower.tail = FALSE)
+t.2alfa
+t >= t.2alfa
+```
+```{r}
+alfa = 0.01
+t.2alfa = qt(p=alfa, df=n-1, lower.tail = FALSE)
+t.2alfa
+t >= t.2alfa
+```
+```{r}
+alfa = 0.1
+t.2alfa = qt(p=alfa, df=n-1, lower.tail = FALSE)
+t.2alfa
+t >= t.2alfa
+```
+
+b) t.test
+```{r}
+t.test(x=dane,mu=200,df=955, alternative = "greater")
+```
+
+
+
+Zadanie 3. 
+Odbiorca procesorów wysłał do producenta zmierzone przez siebie wartości natężenia prądu w partii testowanych procesorów innego producenta S (zbiór  cpus.S  z pliku  Lista3.RData) twierdząc,   że   według  zapewnień   producenta  S  natężenie   wynosi   także   200  μA,   a  w  praktyce natężenie w prądu w pomiarach wychodzi mniejsze niż w procesorach producenta P (zbiór cpus).Czy na poziomie istotności 0,05 twierdzenie to znajduje uzasadnienie w danych przy założeniach z zadania 1 oraz gwarancji producenta S, że odchylenie standardowe wielkości natężenia prądu w jego procesorach wynosi 2,5 μA?
+Czy wynik zmieni się dla poziomu istotności 0,1?
+Czy wynik zmieni się dla poziomu istotności 0,01?
+
+
+X1 - natężenie w procesach badane przez producenta (cpus)
+X2 - natężenie w procesach badane przez odbiorców (cpus.S)
+
+H0: m1=m2
+H1: m1>m2
+
+Średnia:
+```{r}
+sr1 = mean(cpus)
+sr2 = mean(cpus.S)
+sr1
+sr2
+```
+
+
+```{r}
+n1 = 1000
+n2 = 500
+alfa = 0.05
+sigma1 = 2.5
+sigma2 = 2.5
+U = (sr1-sr2)/sqrt(sigma1ˆ2/n1+sigma2ˆ2/n2)
+U
+U <= qnorm(p=alfa, lower.tail = FALSE)
+```
+```{r}
+u.2alfa = qnorm(p=0.05, lower.tail = FALSE)
+u.2alfa
+```
+```{r}
+u.2alfa = qnorm(p=0.01, lower.tail = FALSE)
+u.2alfa
+```
+```{r}
+u.2alfa = qnorm(p=0.1, lower.tail = FALSE)
+u.2alfa
+```
+```{r}
+library(BSDA)
+z.test(x=cpus, y=cpus.S, alternative = "greater", sigma.x = sigma1, sigma.y = sigma2)
+```
+
+
+
+
+Zadanie 4. 
+Rozwiąż Zadanie 3 przy założeniu, że nie jest znane odchylenie standardowe wielkości natężenia prądu w procesorach żadnego z producentów.
+
+```{r}
+s1 = sd(cpus)
+s2 = sd(cpus.S)
+
+s2p = ((n1-1)*s1ˆ2 + (n2-1)*s2ˆ2)/(n1+n2-2)
+s2p
+```
+```{r}
+t = (sr1 - sr2)/sqrt(s2p*(1/n1+1/n2))
+t
+h0 = qt(p=alfa, df=n1+n2-2, lower.tail = FALSE)
+h0
+```
+```{r}
+t.test(x=cpus, y=cpus.S, alternative = "greater", var.equal=TRUE)
+```
+```{r}
+h0 = qt(p=0.01, df=n1+n2-2, lower.tail = FALSE)
+h0
+```
+```{r}
+h0 = qt(p=0.1, df=n1+n2-2, lower.tail = FALSE)
+h0
+```
+```{r}
+pt(q=t, df=n1+n2-2, lower.tail = FALSE)
+```
+
+b) nic nie wiemy o sigmie 1 i 2
+```{r}
+t = (mean(cpus)-mean(cpus.S))/ sqrt(sd(cpus)**2/n1+sd(cpus.S)**2/n2)
+t
+```
+```{r}
+v = (sd(cpus)^2/n1)+sd(cpus.S)^2/((sd(cpus))**4/n1^2*(n1-1)+(sd(cpus.S))^4/n2^2*(n2-1))
+v
+```
+
+
